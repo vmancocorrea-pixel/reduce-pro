@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Store, ShoppingBag, HeartHandshake, Leaf, TrendingDown, Globe2, Sparkles, ArrowRight, MapPin, Bell, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/site/Header";
@@ -50,10 +51,14 @@ function Hero() {
             Conectamos supermercados, restaurantes y panaderías con consumidores y fundaciones para vender o donar alimentos próximos a vencer en buen estado.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button variant="hero" size="xl">
-              Explorar productos cerca <ArrowRight className="h-4 w-4" />
+            <Button variant="hero" size="xl" asChild>
+              <Link to="/registro">
+                Explorar productos cerca <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button variant="outline" size="xl">Soy una empresa</Button>
+            <Button variant="outline" size="xl" asChild>
+              <Link to="/registro">Soy una empresa</Link>
+            </Button>
           </div>
           <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground">
             <div><strong className="text-foreground">+12.000</strong> kg recuperados</div>
@@ -218,8 +223,8 @@ function CTA() {
         Empieza hoy a transformar el desperdicio en oportunidad. Gratis para empezar.
       </p>
       <div className="mt-7 flex flex-wrap gap-3 justify-center">
-        <Button variant="hero" size="xl">Crear cuenta gratis</Button>
-        <Button variant="outline" size="xl">Hablar con ventas</Button>
+        <Button variant="hero" size="xl" asChild><Link to="/registro">Crear cuenta gratis</Link></Button>
+        <Button variant="outline" size="xl" asChild><a href="mailto:hola@reduceplus.co">Hablar con ventas</a></Button>
       </div>
     </section>
   );
