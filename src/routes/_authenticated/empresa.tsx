@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { Store, Package, BarChart3, HeartHandshake } from "lucide-react";
 import { supabaseApp as supabase } from "@/lib/supabase-app";
@@ -21,6 +31,8 @@ function EmpresaDashboard() {
   const [products, setProducts] = useState<Array<any>>([]);
   const [applications, setApplications] = useState<Array<any>>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
@@ -101,6 +113,7 @@ function EmpresaDashboard() {
           `id, title, description, category, quantity, unit, original_price, discount_price, expires_at, is_donation, company_id, status, created_at, images`
         )
         .eq("company_id", currentCompanyId)
+        .neq("status", "eliminado")
         .order("created_at", { ascending: false });
 
       if (productsError) {
@@ -120,7 +133,7 @@ function EmpresaDashboard() {
 
       const { data: transactionData, error: transactionsError } = await supabase
         .from("transactions")
-        .select("id, product_id, buyer_id, quantity, total, status, created_at")
+        .select("id, product_id, buyer_id, quantity, total, status, created_at, delivery_method")
         .eq("seller_company_id", currentCompanyId)
         .order("created_at", { ascending: false });
 
@@ -256,6 +269,7 @@ function EmpresaDashboard() {
         `id, title, description, category, quantity, unit, original_price, discount_price, expires_at, is_donation, company_id, status, created_at, images`
       )
       .eq("company_id", companyId)
+      .neq("status", "eliminado")
       .order("created_at", { ascending: false });
 
     if (productsError) {
@@ -348,6 +362,50 @@ function EmpresaDashboard() {
     setProducts((cur) => cur.map((p) => (p.id === application.product_id ? { ...p, status: "disponible" } : p)));
     toast.success("Solicitud rechazada");
     setProcessingId(null);
+  };
+
+  const handleDelete = (product: any) => {
+    setProductToDelete(product);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyId || !productToDelete) {
+      toast.error("Empresa no encontrada");
+      setProductToDelete(null);
+      return;
+    }
+
+    setDeletingId(productToDelete.id);
+
+    const { error } = await supabase
+      .from("products")
+      .update({ status: "eliminado" } as any)
+      .eq("id", productToDelete.id);
+
+    if (error) {
+      console.error("Error deleting product:", error);
+      toast.error(error.message ?? "No se pudo eliminar el producto");
+      setDeletingId(null);
+      setProductToDelete(null);
+      return;
+    }
+
+    const { error: transactionError } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("product_id", productToDelete.id)
+      .eq("seller_company_id", companyId);
+
+    if (transactionError) {
+      console.error("Error deleting related transactions:", transactionError);
+      toast.error(transactionError.message ?? "No se pudieron eliminar las solicitudes relacionadas");
+    }
+
+    setProducts((cur) => cur.filter((item) => item.id !== productToDelete.id));
+    setApplications((cur) => cur.filter((application) => application.product_id !== productToDelete.id));
+    toast.success("Producto eliminado correctamente");
+    setDeletingId(null);
+    setProductToDelete(null);
   };
 
   return (
@@ -472,6 +530,17 @@ function EmpresaDashboard() {
                       <span>Unidad: {product.unit}</span>
                       <span>Precio: {formatPrice(product.discount_price ?? product.original_price)}</span>
                     </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => void handleDelete(product)}
+                        disabled={deletingId === product.id}
+                      >
+                        {deletingId === product.id ? "Eliminando..." : "Eliminar"
+                        }
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -498,6 +567,7 @@ function EmpresaDashboard() {
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">Total: {application.total}</div>
                   <div className="mt-2 text-sm text-muted-foreground">Comprador: {application.buyer_name || application.buyer_id}</div>
+                  <div className="mt-2 text-sm text-muted-foreground">Entrega: {application.delivery_method === "domicilio" ? "Entregar a domicilio" : "Recoger en tienda"}</div>
                   <div className="mt-2 text-xs text-muted-foreground">Aplicado: {new Date(application.created_at).toLocaleString()}</div>
                   {application.status === "pendiente" && (
                     <div className="mt-4 flex items-center gap-3">
@@ -514,6 +584,23 @@ function EmpresaDashboard() {
             </div>
           )}
         </section>
+
+        <AlertDialog open={Boolean(productToDelete)} onOpenChange={(open) => !open && setProductToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción ocultará el producto y eliminará las solicitudes relacionadas. No podrá revertirse desde la interfaz.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => void handleConfirmDelete()} disabled={deletingId === productToDelete?.id}>
+                {deletingId === productToDelete?.id ? "Eliminando..." : "Eliminar producto"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );

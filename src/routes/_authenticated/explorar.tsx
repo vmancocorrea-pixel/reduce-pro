@@ -5,6 +5,16 @@ import { Header } from "@/components/site/Header";
 import { useAuth } from "@/hooks/use-auth";
 import { ShoppingBag, MapPin, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { supabaseApp as supabase } from "@/lib/supabase-app";
 
 const STORAGE_BUCKET = "product-images";
@@ -25,6 +35,8 @@ function ExplorarPage() {
   const [products, setProducts] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [deliveryMethod, setDeliveryMethod] = useState<"domicilio" | "tienda" | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -82,21 +94,32 @@ function ExplorarPage() {
     void load();
   }, [user]);
 
-  const handleApply = async (product: any) => {
+  const handleApply = (product: any) => {
+    setSelectedProduct(product);
+    setDeliveryMethod(null);
+  };
+
+  const handleConfirmApply = async () => {
     if (!user) {
       toast.error("Debes iniciar sesión para aplicar");
       return;
     }
-    setApplyingId(product.id);
-    const total = product.discount_price ?? product.original_price ?? 0;
+    if (!selectedProduct || !deliveryMethod) {
+      toast.error("Por favor selecciona un método de entrega");
+      return;
+    }
+
+    setApplyingId(selectedProduct.id);
+    const total = selectedProduct.discount_price ?? selectedProduct.original_price ?? 0;
 
     const { error } = await supabase.from("transactions").insert({
-      product_id: product.id,
+      product_id: selectedProduct.id,
       buyer_id: user.id,
-      seller_company_id: product.company_id,
+      seller_company_id: selectedProduct.company_id,
       quantity: 1,
       total,
       status: "pendiente",
+      delivery_method: deliveryMethod,
     });
 
     if (error) {
@@ -108,16 +131,18 @@ function ExplorarPage() {
     const { error: updateError } = await supabase
       .from("products")
       .update({ status: "reservado" })
-      .eq("id", product.id);
+      .eq("id", selectedProduct.id);
 
     if (updateError) {
       toast.error("Producto reservado, pero no se pudo actualizar el estado");
     } else {
-      toast.success("Te has postulado al producto");
+      toast.success(`Te has postulado al producto. Entrega: ${deliveryMethod === "domicilio" ? "Domicilio" : "Recoger en tienda"}`);
     }
 
     setApplyingId(null);
-    setProducts((current) => current.filter((item) => item.id !== product.id));
+    setProducts((current) => current.filter((item) => item.id !== selectedProduct.id));
+    setSelectedProduct(null);
+    setDeliveryMethod(null);
   };
 
   return (
@@ -170,16 +195,67 @@ function ExplorarPage() {
                   <Button
                     variant="hero"
                     className="mt-6"
-                    onClick={() => void handleApply(product)}
-                    disabled={applyingId === product.id}
+                    onClick={() => handleApply(product)}
                   >
-                    {applyingId === product.id ? "Aplicando..." : "Aplicar"}
+                    Aplicar
                   </Button>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        <AlertDialog open={Boolean(selectedProduct)} onOpenChange={(open) => !open && (setSelectedProduct(null), setDeliveryMethod(null))}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar solicitud</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Cómo deseas recibir el producto?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-3 py-4">
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent" htmlFor="domicilio">
+                <input
+                  id="domicilio"
+                  type="radio"
+                  name="delivery"
+                  value="domicilio"
+                  checked={deliveryMethod === "domicilio"}
+                  onChange={() => setDeliveryMethod("domicilio")}
+                  className="h-4 w-4"
+                />
+                <div>
+                  <div className="font-semibold">Entregar a domicilio</div>
+                  <div className="text-sm text-muted-foreground">Te lo enviamos a tu dirección</div>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent" htmlFor="tienda">
+                <input
+                  id="tienda"
+                  type="radio"
+                  name="delivery"
+                  value="tienda"
+                  checked={deliveryMethod === "tienda"}
+                  onChange={() => setDeliveryMethod("tienda")}
+                  className="h-4 w-4"
+                />
+                <div>
+                  <div className="font-semibold">Recoger en tienda</div>
+                  <div className="text-sm text-muted-foreground">Lo retiras en el local</div>
+                </div>
+              </label>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => void handleConfirmApply()}
+                disabled={!deliveryMethod || applyingId === selectedProduct?.id}
+              >
+                {applyingId === selectedProduct?.id ? "Aplicando..." : "Confirmar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
