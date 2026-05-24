@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Leaf, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth, roleHome } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseApp as supabase } from "@/lib/supabase-app";
 import { toast } from "sonner";
 
 export function Header() {

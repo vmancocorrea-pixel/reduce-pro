@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/site/Header";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { supabaseApp as supabase } from "@/lib/supabase-app";
 import { roleHome, type AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
@@ -42,11 +41,6 @@ function LoginPage() {
     if (data.user) await redirectByRole(data.user.id);
   };
 
-  const onGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("No se pudo iniciar con Google");
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -55,14 +49,7 @@ function LoginPage() {
           <h1 className="text-2xl font-bold">Iniciar sesión</h1>
           <p className="mt-1 text-sm text-muted-foreground">Accede para gestionar tus productos o reservas.</p>
 
-          <Button type="button" variant="outline" className="w-full mt-6" onClick={onGoogle}>
-            Continuar con Google
-          </Button>
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> o con email <span className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4 mt-6">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
