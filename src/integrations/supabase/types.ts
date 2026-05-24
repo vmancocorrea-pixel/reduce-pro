@@ -14,16 +14,419 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_type: Database["public"]["Enums"]["company_type"]
+          created_at: string
+          id: string
+          lat: number | null
+          legal_name: string
+          lng: number | null
+          logo_url: string | null
+          nit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_type?: Database["public"]["Enums"]["company_type"]
+          created_at?: string
+          id?: string
+          lat?: number | null
+          legal_name: string
+          lng?: number | null
+          logo_url?: string | null
+          nit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_type?: Database["public"]["Enums"]["company_type"]
+          created_at?: string
+          id?: string
+          lat?: number | null
+          legal_name?: string
+          lng?: number | null
+          logo_url?: string | null
+          nit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      donations: {
+        Row: {
+          created_at: string
+          donor_company_id: string
+          foundation_id: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          status: Database["public"]["Enums"]["donation_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          donor_company_id: string
+          foundation_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          status?: Database["public"]["Enums"]["donation_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          donor_company_id?: string
+          foundation_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          status?: Database["public"]["Enums"]["donation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_donor_company_id_fkey"
+            columns: ["donor_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_foundation_id_fkey"
+            columns: ["foundation_id"]
+            isOneToOne: false
+            referencedRelation: "foundations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foundations: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          nit: string | null
+          pickup_capacity_kg: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          nit?: string | null
+          pickup_capacity_kg?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          nit?: string | null
+          pickup_capacity_kg?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_price: number | null
+          expires_at: string | null
+          id: string
+          images: string[] | null
+          is_donation: boolean
+          lat: number | null
+          lng: number | null
+          original_price: number | null
+          quantity: number
+          status: Database["public"]["Enums"]["product_status"]
+          title: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_price?: number | null
+          expires_at?: string | null
+          id?: string
+          images?: string[] | null
+          is_donation?: boolean
+          lat?: number | null
+          lng?: number | null
+          original_price?: number | null
+          quantity?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          title: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_price?: number | null
+          expires_at?: string | null
+          id?: string
+          images?: string[] | null
+          is_donation?: boolean
+          lat?: number | null
+          lng?: number | null
+          original_price?: number | null
+          quantity?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          title?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reputation: {
+        Row: {
+          comment: string | null
+          created_at: string
+          from_user_id: string
+          id: string
+          stars: number
+          to_user_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          from_user_id: string
+          id?: string
+          stars: number
+          to_user_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          stars?: number
+          to_user_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reputation_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          seller_company_id: string
+          status: Database["public"]["Enums"]["transaction_status"]
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+          seller_company_id: string
+          status?: Database["public"]["Enums"]["transaction_status"]
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          seller_company_id?: string
+          status?: Database["public"]["Enums"]["transaction_status"]
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_seller_company_id_fkey"
+            columns: ["seller_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "empresa" | "consumidor" | "fundacion" | "admin"
+      company_type:
+        | "supermercado"
+        | "restaurante"
+        | "panaderia"
+        | "agroindustria"
+        | "tienda"
+        | "otro"
+      donation_status:
+        | "solicitada"
+        | "aprobada"
+        | "recogida"
+        | "entregada"
+        | "cancelada"
+      product_status:
+        | "disponible"
+        | "reservado"
+        | "vendido"
+        | "donado"
+        | "expirado"
+      transaction_status:
+        | "pendiente"
+        | "confirmada"
+        | "completada"
+        | "cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +553,36 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["empresa", "consumidor", "fundacion", "admin"],
+      company_type: [
+        "supermercado",
+        "restaurante",
+        "panaderia",
+        "agroindustria",
+        "tienda",
+        "otro",
+      ],
+      donation_status: [
+        "solicitada",
+        "aprobada",
+        "recogida",
+        "entregada",
+        "cancelada",
+      ],
+      product_status: [
+        "disponible",
+        "reservado",
+        "vendido",
+        "donado",
+        "expirado",
+      ],
+      transaction_status: [
+        "pendiente",
+        "confirmada",
+        "completada",
+        "cancelada",
+      ],
+    },
   },
 } as const
