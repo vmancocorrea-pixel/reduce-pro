@@ -1,68 +1,68 @@
-# Fase 2 — Base de datos, autenticación y roles
 
-Backend ya conectado. Ahora construimos los cimientos de datos y el sistema de cuentas para los 3 actores: **empresas, consumidores y fundaciones**.
+## Contexto y limitación importante
 
-## 1. Esquema de base de datos (migración SQL)
+Lovable Cloud ya está activado y **no se puede desactivar**. Estos archivos son **auto-generados** por la plataforma y se sobrescriben si los editamos:
 
-Tablas en `public`:
+- `src/integrations/supabase/client.ts`, `client.server.ts`, `auth-attacher.ts`, `auth-middleware.ts`, `types.ts`
+- `.env`, `supabase/config.toml`
 
-- **profiles** — datos básicos de cada usuario (nombre, teléfono, ciudad, avatar). 1:1 con `auth.users`, creado automáticamente al registrarse vía trigger.
-- **user_roles** — tabla separada (enum `app_role`: `empresa | consumidor | fundacion | admin`). Nunca se guarda el rol en `profiles` para evitar escalada de privilegios.
-- **companies** — perfil extendido para empresas (razón social, NIT, tipo: supermercado/restaurante/panadería/agroindustria, dirección, geolocalización lat/lng).
-- **foundations** — perfil extendido para fundaciones (nombre, NIT, dirección, capacidad de recogida).
-- **products** — publicaciones de alimentos (título, descripción, categoría, precio original, precio con descuento, cantidad, unidad, fecha de vencimiento, imágenes, estado: disponible/reservado/vendido/donado, es_donacion bool, lat/lng).
-- **transactions** — compras y reservas (producto, comprador, vendedor, cantidad, total, estado, fecha).
-- **donations** — donaciones a fundaciones (producto, empresa donante, fundación receptora, estado: solicitada/aprobada/recogida/entregada).
-- **notifications** — alertas in-app (usuario, tipo, mensaje, leída).
-- **reputation** — calificaciones bidireccionales (de/para, transacción, estrellas 1-5, comentario).
-
-Helpers de seguridad:
-- Función `has_role(_user_id, _role)` con `SECURITY DEFINER` para evitar recursión en RLS.
-- Función `handle_new_user()` + trigger en `auth.users` para auto-crear `profiles`.
-- Trigger `update_updated_at_column()` reutilizable.
-
-**RLS en todas las tablas**, políticas resumidas:
-- Cualquiera puede ver productos `disponibles` (catálogo público).
-- Empresas solo gestionan **sus** productos/donaciones.
-- Consumidores solo ven **sus** transacciones.
-- Fundaciones solo ven donaciones donde son receptoras o están disponibles.
-- Admin tiene acceso amplio vía `has_role()`.
-
-## 2. Autenticación
-
-- **Email + contraseña** (sin auto-confirm — usuarios deben verificar email).
-- **Google Sign-In** vía broker de Lovable Cloud (`lovable.auth.signInWithOAuth`).
-- En el formulario de registro, el usuario elige su rol (empresa / consumidor / fundación). Se inserta en `user_roles` tras crear la cuenta.
-- Tras login, se redirige según rol:
-  - `empresa` → `/empresa` (dashboard placeholder)
-  - `consumidor` → `/explorar` (placeholder)
-  - `fundacion` → `/fundacion` (placeholder)
-
-## 3. Rutas y componentes nuevos
-
-```text
-src/routes/
-  login.tsx                       — login (email+pass + Google)
-  registro.tsx                    — signup con selector de rol
-  _authenticated.tsx              — guard (redirige a /login si no hay sesión)
-  _authenticated/empresa.tsx      — dashboard empresa (skeleton)
-  _authenticated/explorar.tsx     — vista consumidor (skeleton)
-  _authenticated/fundacion.tsx    — vista fundación (skeleton)
-src/hooks/use-auth.ts             — hook con sesión + rol activo
-src/components/site/Header.tsx    — actualizar: si hay sesión, mostrar avatar+logout
-```
-
-- Listener `onAuthStateChange` en `__root.tsx` para invalidar caché en login/logout.
-- Router context tipado con `auth: { isAuthenticated, user, role }`.
-
-## 4. Qué NO entra en esta fase
-Catálogo completo, geolocalización en mapa, transacciones reales, dashboards con métricas, notificaciones push. Esos vienen en Fases 3+ una vez tengamos cuentas funcionando.
+Por eso creamos un **cliente paralelo** propio y migramos el código para usarlo.
 
 ---
 
-## Detalles técnicos
-- Toda la lógica sensible (lecturas/escrituras de productos, transacciones) se hará vía `createServerFn` con `requireSupabaseAuth` en fases posteriores. En esta fase, las páginas autenticadas son skeletons con un saludo "Hola, {nombre} ({rol})".
-- Google OAuth requiere llamar a `configure_social_auth` para registrar el provider.
-- La migración se ejecuta primero y requiere tu aprobación; luego escribo el código.
+## Decisiones confirmadas
 
-¿Procedo con la migración + auth tal cual, o quieres ajustar algo (ej. agregar/quitar tablas, cambiar roles, omitir Google)?
+- ✅ Tú ejecutas el SQL en tu Supabase (`cwfvrabcswkkgxrywiyd`).
+- ✅ **Google OAuth se desactiva.** Solo email + password.
+- ✅ Asumes la pérdida del broker de Lovable y la integración nativa.
+
+---
+
+## Plan de implementación
+
+### 1. Cliente Supabase propio
+- `src/lib/supabase-app.ts` — exporta `supabaseApp` apuntando a tu URL `https://cwfvrabcswkkgxrywiyd.supabase.co` con tu publishable key hardcodeada. `storageKey` distinto al de Cloud para aislar sesiones.
+
+### 2. Reemplazo de imports
+En estos archivos, cambiar `from "@/integrations/supabase/client"` → `from "@/lib/supabase-app"` (alias `supabaseApp as supabase`):
+- `src/hooks/use-auth.ts`
+- `src/routes/__root.tsx`
+- `src/routes/_authenticated.tsx`
+- `src/routes/login.tsx`
+- `src/routes/registro.tsx`
+- `src/components/site/Header.tsx`
+
+### 3. Eliminar Google OAuth
+- Quitar botón "Continuar con Google" y la función `onGoogle` en `login.tsx` y `registro.tsx`.
+- Quitar import de `@/integrations/lovable` en ambos archivos.
+- Quitar la lógica de `pending_role` / `sessionStorage` en `registro.tsx` y `_authenticated.tsx` (ya no hace falta sin OAuth).
+
+### 4. SQL para tu Supabase
+Generar `/mnt/documents/migrations-export.sql` con:
+- Enums: `app_role`, `company_type`, `product_status`, `transaction_status`, `donation_status`
+- 9 tablas con sus columnas y defaults: `profiles`, `user_roles`, `companies`, `foundations`, `products`, `transactions`, `donations`, `notifications`, `reputation`
+- Funciones `has_role`, `handle_new_user`, `update_updated_at_column`
+- Trigger `on_auth_user_created` sobre `auth.users`
+- Triggers `update_*_updated_at` en las tablas con `updated_at`
+- Todas las RLS policies actuales
+
+Tú lo pegas en el SQL Editor de tu Supabase.
+
+### 5. Configuración manual en tu dashboard de Supabase
+- Authentication → URL Configuration → añadir tus dominios de preview/producción a **Redirect URLs** y **Site URL**.
+- Authentication → Providers → asegurar que **Email** está habilitado, **Google** deshabilitado.
+- Si NO quieres confirmación por email durante pruebas: Authentication → Providers → Email → desactivar "Confirm email".
+
+---
+
+## Lo que queda inutilizado (sin tocar)
+- Archivos auto-generados de Lovable Cloud (siguen ahí pero ya no se importan).
+- Server functions con `requireSupabaseAuth` (no estamos usando ninguna actualmente).
+- `src/integrations/lovable/index.ts` (broker de OAuth, sin uso tras quitar Google).
+
+---
+
+## Recordatorios
+- **Rota la contraseña de tu DB** en el dashboard de Supabase — la pegaste en chat.
+- La publishable key (`sb_publishable_...`) es pública, no hay riesgo en commitearla.
+- En el futuro, si necesitas server-side logic con tu Supabase, habrá que crear un middleware paralelo apuntando a tus credenciales.
