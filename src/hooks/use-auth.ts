@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseApp as supabase } from "@/lib/supabase-app";
 
 export type AppRole = "empresa" | "consumidor" | "fundacion" | "admin";
 

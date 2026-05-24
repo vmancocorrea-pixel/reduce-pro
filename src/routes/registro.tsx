@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/site/Header";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { supabaseApp as supabase } from "@/lib/supabase-app";
 import { roleHome, type AppRole } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -57,13 +56,6 @@ function SignupPage() {
     else navigate({ to: "/login" });
   };
 
-  const onGoogle = async () => {
-    // Guarda el rol elegido para asignarlo cuando vuelva del OAuth
-    sessionStorage.setItem("pending_role", role);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("No se pudo iniciar con Google");
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -92,14 +84,7 @@ function SignupPage() {
             ))}
           </div>
 
-          <Button type="button" variant="outline" className="w-full mt-6" onClick={onGoogle}>
-            Continuar con Google como {ROLES.find(r => r.id === role)?.label.toLowerCase()}
-          </Button>
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> o con email <span className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4 mt-6">
             <div>
               <Label htmlFor="name">Nombre completo</Label>
               <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
