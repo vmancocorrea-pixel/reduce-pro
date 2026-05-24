@@ -51,10 +51,14 @@ function Hero() {
             Conectamos supermercados, restaurantes y panaderías con consumidores y fundaciones para vender o donar alimentos próximos a vencer en buen estado.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button variant="hero" size="xl">
-              Explorar productos cerca <ArrowRight className="h-4 w-4" />
+            <Button variant="hero" size="xl" asChild>
+              <Link to="/registro">
+                Explorar productos cerca <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button variant="outline" size="xl">Soy una empresa</Button>
+            <Button variant="outline" size="xl" asChild>
+              <Link to="/registro">Soy una empresa</Link>
+            </Button>
           </div>
           <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground">
             <div><strong className="text-foreground">+12.000</strong> kg recuperados</div>
