@@ -223,8 +223,8 @@ function CTA() {
         Empieza hoy a transformar el desperdicio en oportunidad. Gratis para empezar.
       </p>
       <div className="mt-7 flex flex-wrap gap-3 justify-center">
-        <Button variant="hero" size="xl">Crear cuenta gratis</Button>
-        <Button variant="outline" size="xl">Hablar con ventas</Button>
+        <Button variant="hero" size="xl" asChild><Link to="/registro">Crear cuenta gratis</Link></Button>
+        <Button variant="outline" size="xl" asChild><a href="mailto:hola@reduceplus.co">Hablar con ventas</a></Button>
       </div>
     </section>
   );
