@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Store, ShoppingBag, HeartHandshake, Leaf, TrendingDown, Globe2, Sparkles, ArrowRight, MapPin, Bell, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/site/Header";
