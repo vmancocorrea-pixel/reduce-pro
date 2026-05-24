@@ -47,8 +47,17 @@ function SignupPage() {
     if (error) { setLoading(false); toast.error(error.message); return; }
     const userId = data.user?.id;
     if (userId) {
-      const { error: roleErr } = await supabase.from("user_roles").insert({ user_id: userId, role });
-      if (roleErr) console.error(roleErr);
+      // Use the SECURITY DEFINER function to bypass RLS during signup
+      const { error: roleErr } = await supabase.rpc("assign_user_role", {
+        p_user_id: userId,
+        p_user_role: role,
+      });
+      if (roleErr) {
+        console.error("Error assigning role:", roleErr);
+        setLoading(false);
+        toast.error(`Error al asignar rol: ${roleErr.message}`);
+        return;
+      }
     }
     setLoading(false);
     toast.success("Cuenta creada. Revisa tu correo para confirmar.");

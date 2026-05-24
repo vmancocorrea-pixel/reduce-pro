@@ -28,7 +28,7 @@ function LoginPage() {
     const { data } = await supabase
       .from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle();
     const role = (data?.role as AppRole | undefined) ?? null;
-    navigate({ to: roleHome(role) });
+    await navigate({ to: roleHome(role) });
   };
 
   const onSubmit = async (e: FormEvent) => {
