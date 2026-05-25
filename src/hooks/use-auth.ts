@@ -11,7 +11,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, s: Session | null) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
@@ -23,7 +23,7 @@ export function useAuth() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(({ data: { session: s } }: { data: { session: Session | null } }) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) void fetchRole(s.user.id).then(setRole);
