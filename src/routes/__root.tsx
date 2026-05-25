@@ -136,21 +136,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Reduce Max" },
-      { name: "description", content: "Plataforma digital que conecta excedentes
-de alimentos con personas, generando
-ahorro, impacto social y sostenibilidad" },
+      { name: "description", content: "Plataforma digital que conecta excedentes de alimentos con personas, generando ahorro, impacto social y sostenibilidad" },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Reduce Max" },
-      { property: "og:description", content: "Plataforma digital que conecta excedentes
-de alimentos con personas, generando
-ahorro, impacto social y sostenibilidad" },
+      { property: "og:description", content: "Plataforma digital que conecta excedentes de alimentos con personas, generando ahorro, impacto social y sostenibilidad" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Reduce Max" },
-      { name: "twitter:description", content: "Plataforma digital que conecta excedentes
-de alimentos con personas, generando
-ahorro, impacto social y sostenibilidad" },
+      { name: "twitter:description", content: "Plataforma digital que conecta excedentes de alimentos con personas, generando ahorro, impacto social y sostenibilidad" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8RHKvk6yeIX1YRrv1gAXhkHXWQf1/social-images/social-1779667033129-Captura_de_pantalla_2026-05-24_185634.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8RHKvk6yeIX1YRrv1gAXhkHXWQf1/social-images/social-1779667033129-Captura_de_pantalla_2026-05-24_185634.webp" },
     ],
