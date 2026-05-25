@@ -422,7 +422,6 @@ export type Database = {
         | "vendido"
         | "donado"
         | "expirado"
-        | "eliminado"
       transaction_status:
         | "pendiente"
         | "confirmada"
